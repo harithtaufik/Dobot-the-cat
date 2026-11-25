@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 ALLOWED_USER_ID = os.getenv("ALLOWED_USER_ID", "").strip()
+ALLOWED_CHAT_ID = os.getenv("ALLOWED_CHAT_ID", "").strip()
 INACTIVITY_TIMEOUT = int(os.getenv("INACTIVITY_TIMEOUT", "300"))
 BOXCOMPUTE_SANDBOX_ID = os.getenv("BOXCOMPUTE_SANDBOX_ID", "").strip()
 
@@ -26,11 +27,16 @@ chat_history: list[str] = []
 
 
 def is_authorized(update: Update) -> bool:
-    """Allow only the configured user ID if set."""
-    if not ALLOWED_USER_ID:
-        return True
-    user = update.effective_user
-    return user is not None and str(user.id) == ALLOWED_USER_ID
+    """Allow only configured chat ID and/or user ID if set."""
+    if ALLOWED_CHAT_ID:
+        chat = update.effective_chat
+        if chat is None or str(chat.id) != ALLOWED_CHAT_ID:
+            return False
+    if ALLOWED_USER_ID:
+        user = update.effective_user
+        if user is None or str(user.id) != ALLOWED_USER_ID:
+            return False
+    return True
 
 
 def touch_activity(update: Update) -> None:
@@ -91,6 +97,14 @@ def stop_sandbox() -> None:
         logger.warning("bxc CLI not found; relying on BoxCompute's built-in idle stop.")
 
 
+async def id_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if update.effective_chat and update.effective_user:
+        await update.message.reply_text(
+            f"Chat ID: `{update.effective_chat.id}`\nYour User ID: `{update.effective_user.id}`",
+            parse_mode="Markdown",
+        )
+
+
 async def sleep_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not is_authorized(update):
         return
@@ -141,6 +155,7 @@ def main() -> None:
 
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start_cmd))
+    app.add_handler(CommandHandler("id", id_cmd))
     app.add_handler(CommandHandler("sleep", sleep_cmd))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
