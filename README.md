@@ -29,11 +29,12 @@ This fork also includes a Telegram bot bridge (`telegram-bot/`) designed to run 
    TELEGRAM_BOT_TOKEN=your_token_here
    ALLOWED_USER_ID=your_telegram_user_id
    INACTIVITY_TIMEOUT=300
+   BOXCOMPUTE_SANDBOX_ID=your_sandbox_id
    ```
 3. Run the bot:
    ```bash
    .venv/bin/python bot.py
    ```
    - `/start` — wake greeting
-   - `/sleep` — power off the VM immediately
-   - Auto-powers off after `INACTIVITY_TIMEOUT` seconds (default: 300s / 5 mins) of no messages.
+   - `/sleep` — stop the BoxCompute sandbox cleanly via `bxc sandbox stop`
+   - Auto-stops after `INACTIVITY_TIMEOUT` seconds (default: 300s / 5 mins) of no messages when `BOXCOMPUTE_SANDBOX_ID` is set.
