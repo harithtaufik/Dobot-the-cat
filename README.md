@@ -1,3 +1,5 @@
+> Memory core by [@Kiyoraka](https://github.com/Kiyoraka/Project-AI-MemoryCore). I just added a lazy cat personality (Dobot) and a Telegram bridge. All core architecture is @Kiyoraka's work.
+
 # 🧠 **AI MemoryCore** - Universal AI Memory Architecture
 *A simple template for creating persistent AI companions that remember you*
 
