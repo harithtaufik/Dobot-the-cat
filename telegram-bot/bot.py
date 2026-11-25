@@ -71,10 +71,13 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def stop_sandbox() -> None:
     """Stop BoxCompute sandbox cleanly via bxc CLI if configured."""
-    if BOXCOMPUTE_SANDBOX_ID:
-        subprocess.Popen(["bxc", "sandbox", "stop", BOXCOMPUTE_SANDBOX_ID])
-    else:
+    if not BOXCOMPUTE_SANDBOX_ID:
         logger.info("BOXCOMPUTE_SANDBOX_ID not set; skipping bxc sandbox stop.")
+        return
+    try:
+        subprocess.Popen(["bxc", "sandbox", "stop", BOXCOMPUTE_SANDBOX_ID])
+    except FileNotFoundError:
+        logger.warning("bxc CLI not found; relying on BoxCompute's built-in idle stop.")
 
 
 async def sleep_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
