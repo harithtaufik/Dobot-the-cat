@@ -22,6 +22,7 @@ BOXCOMPUTE_SANDBOX_ID = os.getenv("BOXCOMPUTE_SANDBOX_ID", "").strip()
 
 last_activity = time.time()
 last_chat_id = None
+chat_history: list[str] = []
 
 
 def is_authorized(update: Update) -> bool:
@@ -41,10 +42,18 @@ def touch_activity(update: Update) -> None:
 
 
 def run_agy(prompt: str) -> str:
-    """Invoke Antigravity CLI (agy) with the user's message."""
+    """Invoke Antigravity CLI (agy) with Dobot persona and recent chat history."""
+    chat_history.append(f"Harith: {prompt}")
+    recent = "\n".join(chat_history[-10:])
+    full_prompt = (
+        "You are Dobot, Harith's lazy, chill, caring cat AI companion "
+        "(casual Malaysian Malay/Manglish/English matching Harith, never stiff or corporate). "
+        "Do NOT talk about coding projects unless Harith asks. Just chat naturally.\n\n"
+        f"Recent chat:\n{recent}\n\nDobot:"
+    )
     try:
         result = subprocess.run(
-            ["agy", "-p", prompt],
+            ["agy", "--dangerously-skip-permissions", "-p", full_prompt],
             capture_output=True,
             text=True,
             timeout=120,
@@ -53,7 +62,9 @@ def run_agy(prompt: str) -> str:
         output = result.stdout.strip()
         if not output and result.stderr:
             return f"Hmm... ada error sikit:\n{result.stderr.strip()[:500]}"
-        return output or "Hmm... aku blank jap. Cuba tanya lagi?"
+        reply = output or "Hmm... aku blank jap. Cuba tanya lagi?"
+        chat_history.append(f"Dobot: {reply}")
+        return reply
     except FileNotFoundError:
         return "Eh, `agy` CLI tak jumpa kat VM ni. Kena install dulu."
     except subprocess.TimeoutExpired:
