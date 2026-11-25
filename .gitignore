@@ -4,3 +4,7 @@
 
 # Claude Code settings
 .claude/settings.local.json
+
+# Telegram bot secrets & venv
+telegram-bot/.env
+telegram-bot/.venv/
