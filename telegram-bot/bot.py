@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 ALLOWED_USER_ID = os.getenv("ALLOWED_USER_ID", "").strip()
 INACTIVITY_TIMEOUT = int(os.getenv("INACTIVITY_TIMEOUT", "300"))
+BOXCOMPUTE_SANDBOX_ID = os.getenv("BOXCOMPUTE_SANDBOX_ID", "").strip()
 
 last_activity = time.time()
 last_chat_id = None
@@ -68,11 +69,19 @@ async def start_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Mmm... aku dah bangun. Apa cerita, Harith? 🐾")
 
 
+def stop_sandbox() -> None:
+    """Stop BoxCompute sandbox cleanly via bxc CLI if configured."""
+    if BOXCOMPUTE_SANDBOX_ID:
+        subprocess.Popen(["bxc", "sandbox", "stop", BOXCOMPUTE_SANDBOX_ID])
+    else:
+        logger.info("BOXCOMPUTE_SANDBOX_ID not set; skipping bxc sandbox stop.")
+
+
 async def sleep_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not is_authorized(update):
         return
     await update.message.reply_text("Okay, aku sambung tidur dulu. Bye... 😴")
-    subprocess.Popen(["sudo", "poweroff"])
+    stop_sandbox()
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -104,7 +113,7 @@ async def inactivity_watcher(app) -> None:
                     )
                 except Exception:
                     pass
-            subprocess.Popen(["sudo", "poweroff"])
+            stop_sandbox()
             break
 
 
